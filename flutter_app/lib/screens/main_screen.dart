@@ -20,7 +20,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  late RelayService _relay;
+  RelayService? _relay;
   final SttService _stt = SttService();
   final TtsService _tts = TtsService();
 
@@ -39,25 +39,25 @@ class _MainScreenState extends State<MainScreen> {
       final token = prefs.getString('jwt_token') ?? '';
       _relay = RelayService(wsUrl: AppConfig.wsUrl, token: token);
     }
-    _relay.onAgentStatus = (online) {
+    _relay!.onAgentStatus = (online) {
       if (mounted) appState.setAgentOnline(online);
     };
-    _relay.onResponse = (text) async {
+    _relay!.onResponse = (text) async {
       if (!mounted) return;
       appState.setLastMessage(text);
       appState.setVoiceState(VoiceState.speaking);
       await _tts.speak(text);
       if (mounted) appState.setVoiceState(VoiceState.idle);
     };
-    _relay.onError = (text) {
+    _relay!.onError = (text) {
       if (!mounted) return;
       appState.setLastMessage('오류: $text');
       appState.setVoiceState(VoiceState.idle);
     };
-    _relay.onDisconnected = () {
+    _relay!.onDisconnected = () {
       if (mounted) appState.setAgentOnline(false);
     };
-    await _relay.connect();
+    await _relay!.connect();
   }
 
   Future<void> _onMicPressStart() async {
@@ -66,7 +66,7 @@ class _MainScreenState extends State<MainScreen> {
     appState.setVoiceState(VoiceState.recording);
     await _stt.startListening(
       onResult: (text) {
-        if (mounted) context.read<AppStateNotifier>().setLastMessage(text);
+        if (mounted) appState.setLastMessage(text);
       },
     );
   }
@@ -75,18 +75,20 @@ class _MainScreenState extends State<MainScreen> {
     final appState = context.read<AppStateNotifier>();
     if (appState.voiceState != VoiceState.recording) return;
     await _stt.stopListening();
+    if (!mounted) return;
     final text = appState.lastMessage.trim();
     if (text.isEmpty) {
       appState.setVoiceState(VoiceState.idle);
       return;
     }
     appState.setVoiceState(VoiceState.processing);
-    _relay.sendCommand(text);
+    _relay?.sendCommand(text);
   }
 
   @override
   void dispose() {
-    _relay.disconnect();
+    _relay?.disconnect();
+    _tts.stop();
     super.dispose();
   }
 
