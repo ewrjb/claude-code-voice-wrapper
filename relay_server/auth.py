@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt
 
-# Use pbkdf2_sha256 for better compatibility with passlib 1.7.4
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+# Use bcrypt for password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 30
