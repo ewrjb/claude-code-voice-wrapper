@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 class TtsService {
   final FlutterTts _tts = FlutterTts();
   bool _initialized = false;
+  bool _speaking = false;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -17,14 +18,20 @@ class TtsService {
   /// Speaks [text] and completes when done.
   Future<void> speak(String text) async {
     await initialize();
+    if (_speaking) {
+      await _tts.stop();
+    }
+    _speaking = true;
     final completer = Completer<void>();
-    _tts.setCompletionHandler(() => completer.complete());
-    _tts.setCancelHandler(() => completer.complete());
+    _tts.setCompletionHandler(() { if (!completer.isCompleted) completer.complete(); });
+    _tts.setCancelHandler(() { if (!completer.isCompleted) completer.complete(); });
     await _tts.speak(text);
     await completer.future;
+    _speaking = false;
   }
 
   Future<void> stop() async {
+    _speaking = false;
     await _tts.stop();
   }
 }
