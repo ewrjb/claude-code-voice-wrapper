@@ -17,6 +17,7 @@ class RelayService {
   RelayService({required this.wsUrl, required this.token});
 
   Future<void> connect() async {
+    await disconnect();
     final uri = Uri.parse('$wsUrl/ws/app?token=$token');
     _channel = WebSocketChannel.connect(uri);
     _subscription = _channel!.stream.listen(
@@ -65,8 +66,8 @@ class RelayService {
       } else if (msg.isError) {
         onError(msg.text);
       }
-    } catch (_) {
-      // Silently ignore malformed messages
+    } on FormatException {
+      // Silently ignore messages that are not valid WsMessage JSON
     }
   }
 }
