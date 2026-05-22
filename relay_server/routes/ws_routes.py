@@ -11,7 +11,7 @@ async def _authenticate(websocket: WebSocket, token: str) -> Optional[int]:
     await websocket.accept()
     try:
         return decode_token(token)
-    except JWTError:
+    except (JWTError, KeyError):
         await websocket.close(code=1008)
         return None
 

@@ -40,9 +40,19 @@
 
 ### Claude Code 사용 방식
 
-- Claude Code CLI를 subprocess로 호출 (비대화형 출력 모드, 정확한 플래그는 구현 시 `claude --help`로 확인)
+- 비대화형 모드로 subprocess 호출: `claude -p "메시지"` (`-p` / `--print`)
+- 대화 연속성: `-c` / `--continue` 플래그로 현재 디렉토리의 가장 최근 대화를 자동으로 이어받음
+- 권한 자동 수락: `--permission-mode auto`로 파일 수정·명령 실행 시 permission 프롬프트 없이 진행
 - 사용자의 기존 Pro/Max 구독 그대로 사용 — 추가 API 비용 없음
-- 대화 연속성: 에이전트가 `--resume` 또는 동등한 플래그로 직전 세션을 이어받음. 사용자 1명당 데스크탑 에이전트 1개 → Claude Code 세션 1개 구조
+- 사용자 1명당 데스크탑 에이전트 1개 → Claude Code 세션 1개 구조
+
+```bash
+# 첫 메시지
+claude -p --permission-mode auto "음성지시어\n사용자명령"
+
+# 이후 메시지 (대화 이어받기)
+claude -p -c --permission-mode auto "음성지시어\n사용자명령"
+```
 
 ---
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from aiosqlite import IntegrityError
 from models import get_user_by_email, create_user
 from auth import hash_password, verify_password, create_access_token
 
@@ -20,7 +21,10 @@ class LoginRequest(BaseModel):
 async def register(body: RegisterRequest):
     if await get_user_by_email(body.email):
         raise HTTPException(status_code=400, detail="Email already registered")
-    await create_user(body.email, hash_password(body.password))
+    try:
+        await create_user(body.email, hash_password(body.password))
+    except IntegrityError:
+        raise HTTPException(status_code=400, detail="Email already registered")
     return {"message": "registered"}
 
 
