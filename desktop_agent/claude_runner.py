@@ -1,0 +1,32 @@
+import subprocess
+from typing import Optional
+
+
+class ClaudeRunner:
+    VOICE_PROMPT = """당신은 음성 인터페이스를 통해 개발자와 대화하는 코딩 어시스턴트입니다.
+반드시 다음 규칙을 따르세요:
+- 한국어로 답변
+- 구어체, 전화 통화하듯 자연스럽게
+- 상태 보고는 1~2문장으로
+- 코드 블록, 마크다운 절대 사용 금지
+- 불확실한 결정은 사용자에게 질문
+- 작업 완료 시 무엇을 했는지 짧게 요약"""
+
+    def __init__(self, working_dir: Optional[str] = None):
+        self._has_session = False
+        self._working_dir = working_dir
+
+    def run(self, command: str) -> str:
+        prompt = f"{self.VOICE_PROMPT}\n\n{command}"
+        args = ["claude", "-p", "--permission-mode", "auto"]
+        if self._has_session:
+            args.append("-c")
+        args.append(prompt)
+        result = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            cwd=self._working_dir,
+        )
+        self._has_session = True
+        return result.stdout.strip() or result.stderr.strip()
