@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.voicedev.agent</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <!-- python3 경로: which python3 으로 확인 후 수정 -->
+        <string>/usr/bin/python3</string>
+        <!-- agent.py 절대 경로로 수정 -->
+        <string>/Users/dongju/Projects/claude_code_voice_wrapper_v2/desktop_agent/agent.py</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- 릴레이 서버 주소 (wss:// 권장, 배포 후 수정) -->
+        <key>RELAY_URL</key>
+        <string>ws://localhost:8000</string>
+
+        <!-- 릴레이 서버 로그인 후 발급받은 JWT 토큰 -->
+        <key>TOKEN</key>
+        <string>여기에-JWT-토큰-입력</string>
+
+        <!-- Claude 명령을 실행할 프로젝트 디렉터리 -->
+        <key>WORKING_DIR</key>
+        <string>/Users/dongju/Projects/myproject</string>
+    </dict>
+
+    <!-- 부팅 시 자동 시작 -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- 크래시 시 자동 재시작 -->
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/voicedev-agent.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/voicedev-agent.log</string>
+</dict>
+</plist>
