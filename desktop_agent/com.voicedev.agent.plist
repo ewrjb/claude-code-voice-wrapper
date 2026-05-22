@@ -8,7 +8,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <!-- python3 경로: which python3 으로 확인 후 수정 -->
+        <!-- python3 경로: `which python3` 실행 결과로 교체 -->
         <string>/usr/bin/python3</string>
         <!-- agent.py 절대 경로로 수정 -->
         <string>/Users/dongju/Projects/claude_code_voice_wrapper_v2/desktop_agent/agent.py</string>

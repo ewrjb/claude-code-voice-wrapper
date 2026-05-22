@@ -47,6 +47,8 @@ curl -X POST http://YOUR_RELAY_URL/auth/login \
 
 ## macOS 부팅 시 자동 실행 (launchd)
 
+> **주의:** 운영 서버에 배포 시 RELAY_URL을 반드시 `wss://`(암호화)로 변경하세요. `ws://`는 개발/로컬 환경에서만 사용하세요.
+
 1. `com.voicedev.agent.plist` 파일을 열어 세 곳을 수정:
    - `ProgramArguments[1]`: `agent.py`의 절대 경로
    - `TOKEN`: 위에서 발급한 JWT 토큰
@@ -58,20 +60,34 @@ curl -X POST http://YOUR_RELAY_URL/auth/login \
 cp com.voicedev.agent.plist ~/Library/LaunchAgents/
 ```
 
-3. 등록 및 시작:
+3. **보안**: plist에 JWT 토큰이 포함되어 있으므로 파일 권한을 제한하세요:
+
+```bash
+chmod 600 ~/Library/LaunchAgents/com.voicedev.agent.plist
+```
+
+4. 등록 및 시작:
 
 ```bash
 launchctl load ~/Library/LaunchAgents/com.voicedev.agent.plist
 ```
 
-4. 로그 확인:
+확인:
 
 ```bash
-tail -f /tmp/voicedev-agent.log
+launchctl list com.voicedev.agent   # Status: 0이면 정상 실행 중
+tail -f /tmp/voicedev-agent.log     # 로그 확인
 ```
 
 5. 중지:
 
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.voicedev.agent.plist
+```
+
+제거:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.voicedev.agent.plist
+rm ~/Library/LaunchAgents/com.voicedev.agent.plist
 ```
