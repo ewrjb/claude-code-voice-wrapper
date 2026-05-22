@@ -37,7 +37,7 @@ void main() {
         .thenAnswer(
             (_) async => http.Response('{"detail":"Invalid credentials"}', 401));
 
-    expect(
+    await expectLater(
       service.login('user@example.com', 'wrong'),
       throwsA(isA<AuthException>()),
     );
@@ -48,7 +48,7 @@ void main() {
             headers: anyNamed('headers'), body: anyNamed('body')))
         .thenThrow(Exception('Network error'));
 
-    expect(
+    await expectLater(
       service.login('user@example.com', 'password'),
       throwsA(isA<AuthException>()),
     );
