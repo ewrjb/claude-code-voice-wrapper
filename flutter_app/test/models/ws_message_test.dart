@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:voice_dev/models/ws_message.dart';
 
@@ -37,9 +39,10 @@ void main() {
 
   group('WsMessage.command', () {
     test('produces correct JSON', () {
-      final json = WsMessage.command('로그인 버그 고쳐줘');
-      expect(json, contains('"type":"command"'));
-      expect(json, contains('"text":"로그인 버그 고쳐줘"'));
+      final raw = WsMessage.command('로그인 버그 고쳐줘');
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      expect(decoded['type'], equals('command'));
+      expect(decoded['text'], equals('로그인 버그 고쳐줘'));
     });
   });
 }

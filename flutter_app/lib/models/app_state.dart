@@ -29,7 +29,9 @@ class AppStateNotifier extends ChangeNotifier {
   }
 
   void setLastMessage(String message) {
-    _lastMessage = message;
-    notifyListeners();
+    if (_lastMessage != message) {
+      _lastMessage = message;
+      notifyListeners();
+    }
   }
 }
