@@ -18,7 +18,7 @@ class StatusOrb extends StatelessWidget {
             shape: BoxShape.circle,
             color: _bgColor,
             border: Border.all(color: _borderColor, width: 2),
-            boxShadow: [BoxShadow(color: _borderColor.withOpacity(0.4), blurRadius: 16)],
+            boxShadow: [BoxShadow(color: _borderColor.withValues(alpha: 0.4), blurRadius: 16)],
           ),
           child: Center(child: Text(_icon, style: const TextStyle(fontSize: 32))),
         ),

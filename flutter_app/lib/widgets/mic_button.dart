@@ -25,6 +25,8 @@ class MicButton extends StatelessWidget {
           key: _enabled
               ? const Key('mic_button_enabled')
               : const Key('mic_button_disabled'),
+          onPanStart: _enabled ? (_) => onPressStart?.call() : null,
+          onPanEnd: _enabled ? (_) => onPressEnd?.call() : null,
           onTapDown: _enabled ? (_) => onPressStart?.call() : null,
           onTapUp: _enabled ? (_) => onPressEnd?.call() : null,
           onTapCancel: _enabled ? onPressEnd : null,
@@ -52,7 +54,7 @@ class MicButton extends StatelessWidget {
                 '🎤',
                 style: TextStyle(
                   fontSize: 24,
-                  color: _enabled ? null : Colors.grey.withOpacity(0.3),
+                  color: _enabled ? null : Colors.grey.withValues(alpha: 0.3),
                 ),
               ),
             ),
