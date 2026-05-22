@@ -3,6 +3,7 @@ from fastapi import WebSocket
 
 class SessionManager:
     def __init__(self):
+        # asyncio single-threaded event loop — no lock needed for dict mutations
         self._sessions: dict[int, dict] = {}
 
     def _ensure(self, user_id: int):
