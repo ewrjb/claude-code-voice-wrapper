@@ -22,11 +22,23 @@ class ClaudeRunner:
         if self._has_session:
             args.append("-c")
         args.append(prompt)
-        result = subprocess.run(
-            args,
-            capture_output=True,
-            text=True,
-            cwd=self._working_dir,
-        )
+        try:
+            result = subprocess.run(
+                args,
+                capture_output=True,
+                text=True,
+                cwd=self._working_dir,
+                timeout=120,
+            )
+        except FileNotFoundError:
+            return "오류: claude 명령을 찾을 수 없습니다."
+        except subprocess.TimeoutExpired:
+            return "오류: Claude Code 응답 시간 초과"
+        if result.returncode != 0:
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip()
+            return stdout or stderr or "오류: Claude Code 실행 실패"
         self._has_session = True
-        return result.stdout.strip() or result.stderr.strip()
+        stdout = result.stdout.strip()
+        stderr = result.stderr.strip()
+        return stdout or stderr or "(응답 없음)"
