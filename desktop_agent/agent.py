@@ -6,7 +6,6 @@ import websockets
 from claude_runner import ClaudeRunner
 from config import get_relay_url, get_token, get_working_dir
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 RECONNECT_DELAY = 5
@@ -23,7 +22,11 @@ async def handle_message(raw: str, runner: ClaudeRunner) -> Optional[str]:
     if not text:
         return None
     loop = asyncio.get_running_loop()
-    response_text = await loop.run_in_executor(None, runner.run, text)
+    try:
+        response_text = await loop.run_in_executor(None, runner.run, text)
+    except Exception as exc:
+        logger.error("runner 오류: %s", exc)
+        return json.dumps({"type": "error", "text": str(exc)})
     return json.dumps({"type": "response", "text": response_text})
 
 
@@ -44,6 +47,7 @@ async def run_forever(relay_url: str, token: str, runner: ClaudeRunner) -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     relay_url = get_relay_url()
     token = get_token()
     working_dir = get_working_dir()

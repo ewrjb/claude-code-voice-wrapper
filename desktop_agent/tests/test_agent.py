@@ -1,6 +1,6 @@
 import json
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
 from agent import handle_message
 from claude_runner import ClaudeRunner
 
@@ -54,3 +54,13 @@ async def test_missing_text_field_returns_none(runner):
     result = await handle_message(raw, runner)
     assert result is None
     runner.run.assert_not_called()
+
+
+async def test_runner_exception_returns_error_response(runner):
+    runner.run.side_effect = RuntimeError("claude 실행 실패")
+    raw = json.dumps({"type": "command", "text": "명령어"})
+    result = await handle_message(raw, runner)
+    assert result is not None
+    parsed = json.loads(result)
+    assert parsed["type"] == "error"
+    assert "claude 실행 실패" in parsed["text"]
