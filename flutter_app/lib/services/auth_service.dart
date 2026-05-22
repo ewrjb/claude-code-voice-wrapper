@@ -24,7 +24,11 @@ class AuthService {
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data['access_token'] as String;
+        final token = data['access_token'];
+        if (token == null || token is! String) {
+          throw AuthException('서버 응답 오류: access_token 없음');
+        }
+        return token;
       }
       throw AuthException('로그인 실패: HTTP ${response.statusCode}');
     } on AuthException {

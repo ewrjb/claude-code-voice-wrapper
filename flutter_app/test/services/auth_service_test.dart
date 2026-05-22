@@ -38,7 +38,7 @@ void main() {
             (_) async => http.Response('{"detail":"Invalid credentials"}', 401));
 
     expect(
-      () => service.login('user@example.com', 'wrong'),
+      () async => service.login('user@example.com', 'wrong'),
       throwsA(isA<AuthException>()),
     );
   });
@@ -49,7 +49,7 @@ void main() {
         .thenThrow(Exception('Network error'));
 
     expect(
-      () => service.login('user@example.com', 'password'),
+      () async => service.login('user@example.com', 'password'),
       throwsA(isA<AuthException>()),
     );
   });
