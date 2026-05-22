@@ -48,6 +48,12 @@ async def agent_ws(websocket: WebSocket, token: str = Query(...)):
         return
 
     manager.register_agent(user_id, websocket)
+    app_ws = manager.get_app(user_id)
+    if app_ws:
+        await app_ws.send_text(json.dumps({
+            "type": "agent_status",
+            "online": True
+        }))
 
     try:
         while True:

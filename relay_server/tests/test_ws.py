@@ -44,10 +44,12 @@ def test_agent_ws_rejects_invalid_token():
 def test_agent_connect_notifies_app():
     with TestClient(app) as client:
         token = register_and_login(client)
-        with client.websocket_connect(f"/ws/agent?token={token}") as agent:
-            with client.websocket_connect(f"/ws/app?token={token}") as app_ws:
-                status = app_ws.receive_json()
-                assert status == {"type": "agent_status", "online": True}
+        with client.websocket_connect(f"/ws/app?token={token}") as app_ws:
+            app_ws.receive_json()  # consume initial offline status
+            with client.websocket_connect(f"/ws/agent?token={token}") as agent:
+                # agent connected while app was already online — app gets notification
+                msg = app_ws.receive_json()
+                assert msg == {"type": "agent_status", "online": True}
 
 def test_command_relay_app_to_agent():
     with TestClient(app) as client:
@@ -82,8 +84,9 @@ def test_agent_disconnect_notifies_app():
     with TestClient(app) as client:
         token = register_and_login(client)
         with client.websocket_connect(f"/ws/app?token={token}") as app_ws:
+            app_ws.receive_json()  # consume initial agent_status (offline)
             with client.websocket_connect(f"/ws/agent?token={token}") as agent:
-                app_ws.receive_json()  # consume agent_status (online)
-            # agent disconnected — app should get offline notification
+                app_ws.receive_json()  # consume agent_status (online) from agent connect
+            # agent disconnected — app should receive offline notification
             msg = app_ws.receive_json()
             assert msg == {"type": "agent_status", "online": False}
