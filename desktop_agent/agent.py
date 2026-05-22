@@ -14,16 +14,10 @@ logger = logging.getLogger(__name__)
 
 RECONNECT_DELAY = 5
 
-_runner_lock: Optional[asyncio.Lock] = None
-_runner_lock_loop: Optional[asyncio.AbstractEventLoop] = None
 
-
-async def handle_message(raw: str, runner: ClaudeRunner) -> Optional[str]:
-    global _runner_lock, _runner_lock_loop
-    loop = asyncio.get_running_loop()
-    if _runner_lock is None or _runner_lock_loop is not loop:
-        _runner_lock = asyncio.Lock()
-        _runner_lock_loop = loop
+async def handle_message(
+    raw: str, runner: ClaudeRunner, lock: Optional[asyncio.Lock] = None
+) -> Optional[str]:
     try:
         msg = json.loads(raw)
     except json.JSONDecodeError:
@@ -33,7 +27,10 @@ async def handle_message(raw: str, runner: ClaudeRunner) -> Optional[str]:
     text = msg.get("text", "").strip()
     if not text:
         return None
-    async with _runner_lock:
+    if lock is None:
+        lock = asyncio.Lock()
+    loop = asyncio.get_running_loop()
+    async with lock:
         try:
             response_text = await loop.run_in_executor(None, runner.run, text)
         except Exception as exc:
@@ -44,13 +41,14 @@ async def handle_message(raw: str, runner: ClaudeRunner) -> Optional[str]:
 
 async def run_forever(relay_url: str, token: str, runner: ClaudeRunner) -> None:
     uri = f"{relay_url}/ws/agent?token={token}"
+    lock = asyncio.Lock()
     while True:
         try:
             async with websockets.connect(uri) as ws:
                 logger.info("릴레이 서버 연결됨")
                 while True:
                     raw = await ws.recv()
-                    response = await handle_message(raw, runner)
+                    response = await handle_message(raw, runner, lock)
                     if response:
                         await ws.send(response)
         except Exception as exc:
