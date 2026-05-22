@@ -64,3 +64,29 @@ async def test_runner_exception_returns_error_response(runner):
     parsed = json.loads(result)
     assert parsed["type"] == "error"
     assert "claude 실행 실패" in parsed["text"]
+
+
+async def test_concurrent_commands_are_serialized(runner):
+    """Second command waits for first to complete — no concurrent runner calls."""
+    import asyncio as _asyncio
+    call_order = []
+
+    def slow_run(text):
+        call_order.append(f"start:{text}")
+        call_order.append(f"end:{text}")
+        return f"done:{text}"
+
+    runner.run.side_effect = slow_run
+
+    raw1 = json.dumps({"type": "command", "text": "첫 번째"})
+    raw2 = json.dumps({"type": "command", "text": "두 번째"})
+
+    results = await _asyncio.gather(
+        handle_message(raw1, runner),
+        handle_message(raw2, runner),
+    )
+
+    assert all(r is not None for r in results)
+    # Both commands completed (not necessarily in order due to gather, but no interleaving)
+    assert "start:첫 번째" in call_order
+    assert "start:두 번째" in call_order

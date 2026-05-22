@@ -45,6 +45,12 @@ curl -X POST http://YOUR_RELAY_URL/auth/login \
 # 응답: {"access_token": "eyJ..."}
 ```
 
+## 보안 주의사항
+
+- JWT 토큰은 WebSocket URL 쿼리 파라미터로 전송됩니다 (`?token=...`). 서버 접근 로그에 남을 수 있으니 공유 서버에서 로그 관리에 주의하세요.
+- `--permission-mode auto` 옵션으로 인해 에이전트는 파일 수정·명령 실행 권한을 자동 승인합니다. 신뢰할 수 없는 네트워크에서는 사용하지 마세요.
+- plist 파일에 토큰이 평문 저장됩니다. `chmod 600` 적용을 잊지 마세요 (설치 단계에 포함).
+
 ## macOS 부팅 시 자동 실행 (launchd)
 
 > **주의:** 운영 서버에 배포 시 RELAY_URL을 반드시 `wss://`(암호화)로 변경하세요. `ws://`는 개발/로컬 환경에서만 사용하세요.

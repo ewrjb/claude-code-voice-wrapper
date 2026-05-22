@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import asyncio
 import json
 import logging
@@ -10,8 +14,16 @@ logger = logging.getLogger(__name__)
 
 RECONNECT_DELAY = 5
 
+_runner_lock: Optional[asyncio.Lock] = None
+_runner_lock_loop: Optional[asyncio.AbstractEventLoop] = None
+
 
 async def handle_message(raw: str, runner: ClaudeRunner) -> Optional[str]:
+    global _runner_lock, _runner_lock_loop
+    loop = asyncio.get_running_loop()
+    if _runner_lock is None or _runner_lock_loop is not loop:
+        _runner_lock = asyncio.Lock()
+        _runner_lock_loop = loop
     try:
         msg = json.loads(raw)
     except json.JSONDecodeError:
@@ -21,12 +33,12 @@ async def handle_message(raw: str, runner: ClaudeRunner) -> Optional[str]:
     text = msg.get("text", "").strip()
     if not text:
         return None
-    loop = asyncio.get_running_loop()
-    try:
-        response_text = await loop.run_in_executor(None, runner.run, text)
-    except Exception as exc:
-        logger.error("runner 오류: %s", exc)
-        return json.dumps({"type": "error", "text": str(exc)})
+    async with _runner_lock:
+        try:
+            response_text = await loop.run_in_executor(None, runner.run, text)
+        except Exception as exc:
+            logger.error("runner 오류: %s", exc)
+            return json.dumps({"type": "error", "text": str(exc)})
     return json.dumps({"type": "response", "text": response_text})
 
 
