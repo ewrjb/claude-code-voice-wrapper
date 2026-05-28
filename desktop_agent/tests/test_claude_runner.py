@@ -11,12 +11,13 @@ def _mock_result(stdout="응답입니다.", stderr="", returncode=0):
     return m
 
 
-def test_first_call_has_no_continue_flag():
+def test_first_call_has_continue_flag():
+    """--continue를 첫 번째 호출부터 항상 사용한다."""
     runner = ClaudeRunner()
     with patch("subprocess.run", return_value=_mock_result()) as mock_run:
         runner.run("테스트 실행해줘")
     args = mock_run.call_args[0][0]
-    assert "-c" not in args
+    assert "--continue" in args
 
 
 def test_second_call_has_continue_flag():
@@ -26,7 +27,7 @@ def test_second_call_has_continue_flag():
     with patch("subprocess.run", return_value=_mock_result()) as mock_run:
         runner.run("두 번째 명령")
     args = mock_run.call_args[0][0]
-    assert "-c" in args
+    assert "--continue" in args
 
 
 def test_args_include_required_flags():
@@ -38,6 +39,7 @@ def test_args_include_required_flags():
     assert "-p" in args
     assert "--permission-mode" in args
     assert "auto" in args
+    assert "--continue" in args
 
 
 def test_voice_prompt_prepended_to_command():
@@ -86,16 +88,26 @@ def test_empty_stdout_and_stderr_returns_fallback():
     assert result == "(응답 없음)"
 
 
-def test_failed_run_does_not_advance_session():
+def test_reset_session_next_call_has_no_continue():
+    """reset_session() 호출 후 다음 run()은 --continue 없이 새 세션으로 시작한다."""
     runner = ClaudeRunner()
-    failed = _mock_result(stdout="", stderr="오류", returncode=1)
-    with patch("subprocess.run", return_value=failed):
-        runner.run("실패 명령")
-    # Session not advanced, second call should have no -c flag
+    runner.reset_session()
+    with patch("subprocess.run", return_value=_mock_result()) as mock_run:
+        runner.run("새 세션 명령")
+    args = mock_run.call_args[0][0]
+    assert "--continue" not in args
+
+
+def test_after_reset_second_call_has_continue():
+    """reset 후 첫 번째 성공 명령 이후에는 다시 --continue를 사용한다."""
+    runner = ClaudeRunner()
+    runner.reset_session()
+    with patch("subprocess.run", return_value=_mock_result()):
+        runner.run("첫 번째 명령")
     with patch("subprocess.run", return_value=_mock_result()) as mock_run:
         runner.run("두 번째 명령")
     args = mock_run.call_args[0][0]
-    assert "-c" not in args
+    assert "--continue" in args
 
 
 def test_file_not_found_returns_error_message():

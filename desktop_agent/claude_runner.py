@@ -13,14 +13,18 @@ class ClaudeRunner:
 - 작업 완료 시 무엇을 했는지 짧게 요약"""
 
     def __init__(self, working_dir: Optional[str] = None):
-        self._has_session = False
+        self._use_continue = True   # 기본값: 세션 이어가기
         self._working_dir = working_dir
+
+    def reset_session(self) -> None:
+        """다음 run() 호출을 새로운 독립 Claude 세션으로 시작한다."""
+        self._use_continue = False
 
     def run(self, command: str) -> str:
         prompt = f"{self.VOICE_PROMPT}\n\n{command}"
         args = ["claude", "-p", "--permission-mode", "auto"]
-        if self._has_session:
-            args.append("-c")
+        if self._use_continue:
+            args.append("--continue")
         args.append(prompt)
         try:
             result = subprocess.run(
@@ -38,7 +42,8 @@ class ClaudeRunner:
             stdout = result.stdout.strip()
             stderr = result.stderr.strip()
             return stdout or stderr or "오류: Claude Code 실행 실패"
-        self._has_session = True
+        # 성공 후에는 항상 --continue 사용
+        self._use_continue = True
         stdout = result.stdout.strip()
         stderr = result.stderr.strip()
         return stdout or stderr or "(응답 없음)"

@@ -34,4 +34,17 @@ class AppStateNotifier extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  int _commandCount = 0;
+  int get commandCount => _commandCount;
+
+  void incrementCommandCount() {
+    _commandCount++;
+    notifyListeners();
+  }
+
+  void resetCommandCount() {
+    _commandCount = 0;
+    notifyListeners();
+  }
 }

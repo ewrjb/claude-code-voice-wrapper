@@ -45,6 +45,10 @@ class RelayService {
     _channel?.sink.add(WsMessage.command(text));
   }
 
+  void sendNewSession() {
+    _channel?.sink.add('{"type":"new_session"}');
+  }
+
   Future<void> disconnect() async {
     await _subscription?.cancel();
     await _channel?.sink.close();

@@ -60,6 +60,13 @@ class _MainScreenState extends State<MainScreen> {
     await _relay!.connect();
   }
 
+  void _onNewSession() {
+    final appState = context.read<AppStateNotifier>();
+    _relay?.sendNewSession();
+    appState.resetCommandCount();
+    appState.setLastMessage('');
+  }
+
   Future<void> _onMicPressStart() async {
     final appState = context.read<AppStateNotifier>();
     if (!appState.canRecord) return;
@@ -82,6 +89,7 @@ class _MainScreenState extends State<MainScreen> {
       return;
     }
     appState.setVoiceState(VoiceState.processing);
+    appState.incrementCommandCount();
     _relay?.sendCommand(text);
   }
 
@@ -102,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
           body: SafeArea(
             child: Column(
               children: [
-                _buildStatusBar(voiceState),
+                _buildStatusBar(voiceState, appState.commandCount),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -127,21 +135,18 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildStatusBar(VoiceState state) {
+  Widget _buildStatusBar(VoiceState state, int commandCount) {
     final online = state != VoiceState.agentOffline;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             width: 10,
             height: 10,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: online
-                  ? const Color(0xFF3FB950)
-                  : const Color(0xFFE74C3C),
+              color: online ? const Color(0xFF3FB950) : const Color(0xFFE74C3C),
             ),
           ),
           const SizedBox(width: 6),
@@ -149,11 +154,26 @@ class _MainScreenState extends State<MainScreen> {
             online ? '연결됨' : '연결 안됨',
             style: TextStyle(
               fontSize: 12,
-              color: online
-                  ? const Color(0xFF3FB950)
-                  : const Color(0xFFE74C3C),
+              color: online ? const Color(0xFF3FB950) : const Color(0xFFE74C3C),
             ),
           ),
+          if (online && commandCount > 0) ...[
+            const SizedBox(width: 8),
+            Text(
+              '세션 $commandCount번째',
+              style: const TextStyle(fontSize: 11, color: Color(0xFF6E7681)),
+            ),
+          ],
+          const Spacer(),
+          if (online)
+            GestureDetector(
+              key: const Key('new_session_button'),
+              onTap: _onNewSession,
+              child: const Text(
+                '새 세션',
+                style: TextStyle(fontSize: 12, color: Color(0xFF6E7681)),
+              ),
+            ),
         ],
       ),
     );

@@ -22,7 +22,11 @@ async def handle_message(
         msg = json.loads(raw)
     except json.JSONDecodeError:
         return None
-    if msg.get("type") != "command":
+    msg_type = msg.get("type")
+    if msg_type == "new_session":
+        runner.reset_session()
+        return json.dumps({"type": "response", "text": "새 세션을 시작했습니다."})
+    if msg_type != "command":
         return None
     text = msg.get("text", "").strip()
     if not text:
