@@ -11,16 +11,17 @@ def _mock_result(stdout="응답입니다.", stderr="", returncode=0):
     return m
 
 
-def test_first_call_has_continue_flag():
-    """--continue를 첫 번째 호출부터 항상 사용한다."""
+def test_first_call_has_no_continue_flag():
+    """첫 번째 호출은 --continue 없이 새 세션으로 시작한다 (이전 세션이 없을 수 있음)."""
     runner = ClaudeRunner()
     with patch("subprocess.run", return_value=_mock_result()) as mock_run:
         runner.run("테스트 실행해줘")
     args = mock_run.call_args[0][0]
-    assert "--continue" in args
+    assert "--continue" not in args
 
 
 def test_second_call_has_continue_flag():
+    """첫 번째 성공 이후 두 번째 호출은 --continue를 사용한다."""
     runner = ClaudeRunner()
     with patch("subprocess.run", return_value=_mock_result()):
         runner.run("첫 번째 명령")
@@ -39,7 +40,6 @@ def test_args_include_required_flags():
     assert "-p" in args
     assert "--permission-mode" in args
     assert "auto" in args
-    assert "--continue" in args
 
 
 def test_voice_prompt_prepended_to_command():

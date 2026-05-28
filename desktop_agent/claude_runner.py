@@ -13,7 +13,7 @@ class ClaudeRunner:
 - 작업 완료 시 무엇을 했는지 짧게 요약"""
 
     def __init__(self, working_dir: Optional[str] = None):
-        self._use_continue = True   # 기본값: 세션 이어가기
+        self._use_continue = False  # start fresh; set True after first success
         self._working_dir = working_dir
 
     def reset_session(self) -> None:

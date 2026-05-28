@@ -66,6 +66,14 @@ async def test_runner_exception_returns_error_response(runner):
     assert "claude 실행 실패" in parsed["text"]
 
 
+async def test_new_session_resets_runner_and_returns_none(runner):
+    """new_session 메시지는 runner를 리셋하고 None을 반환한다."""
+    raw = json.dumps({"type": "new_session"})
+    result = await handle_message(raw, runner)
+    assert result is None
+    runner.reset_session.assert_called_once()
+
+
 async def test_concurrent_commands_are_serialized(runner):
     """Second command starts only after first has ended — lock enforces ordering."""
     import asyncio as _asyncio

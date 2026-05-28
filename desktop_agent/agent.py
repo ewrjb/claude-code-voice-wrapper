@@ -25,7 +25,7 @@ async def handle_message(
     msg_type = msg.get("type")
     if msg_type == "new_session":
         runner.reset_session()
-        return json.dumps({"type": "response", "text": "새 세션을 시작했습니다."})
+        return None  # Flutter side handles UI reset; no TTS response needed
     if msg_type != "command":
         return None
     text = msg.get("text", "").strip()
