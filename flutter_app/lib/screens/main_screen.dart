@@ -67,30 +67,29 @@ class _MainScreenState extends State<MainScreen> {
     appState.setLastMessage('');
   }
 
-  Future<void> _onMicPressStart() async {
+  Future<void> _onMicTap() async {
     final appState = context.read<AppStateNotifier>();
-    if (!appState.canRecord) return;
-    appState.setVoiceState(VoiceState.recording);
-    await _stt.startListening(
-      onResult: (text) {
-        if (mounted) appState.setLastMessage(text);
-      },
-    );
-  }
-
-  Future<void> _onMicPressEnd() async {
-    final appState = context.read<AppStateNotifier>();
-    if (appState.voiceState != VoiceState.recording) return;
-    await _stt.stopListening();
-    if (!mounted) return;
-    final text = appState.lastMessage.trim();
-    if (text.isEmpty) {
-      appState.setVoiceState(VoiceState.idle);
-      return;
+    if (appState.voiceState == VoiceState.recording) {
+      // 녹음 중 → 종료하고 전송
+      await _stt.stopListening();
+      if (!mounted) return;
+      final text = appState.lastMessage.trim();
+      if (text.isEmpty) {
+        appState.setVoiceState(VoiceState.idle);
+        return;
+      }
+      appState.setVoiceState(VoiceState.processing);
+      appState.incrementCommandCount();
+      _relay?.sendCommand(text);
+    } else if (appState.canRecord) {
+      // idle → 녹음 시작
+      appState.setVoiceState(VoiceState.recording);
+      await _stt.startListening(
+        onResult: (text) {
+          if (mounted) appState.setLastMessage(text);
+        },
+      );
     }
-    appState.setVoiceState(VoiceState.processing);
-    appState.incrementCommandCount();
-    _relay?.sendCommand(text);
   }
 
   @override
@@ -121,8 +120,7 @@ class _MainScreenState extends State<MainScreen> {
                       const SizedBox(height: 32),
                       MicButton(
                         state: voiceState,
-                        onPressStart: _onMicPressStart,
-                        onPressEnd: _onMicPressEnd,
+                        onTap: _onMicTap,
                       ),
                     ],
                   ),

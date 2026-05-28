@@ -5,19 +5,14 @@ import 'package:voice_dev/models/app_state.dart';
 import 'package:voice_dev/screens/main_screen.dart';
 import 'package:voice_dev/services/relay_service.dart';
 
-/// FakeRelayService: does nothing, so tests don't hit real network
 class FakeRelayService extends RelayService {
   FakeRelayService()
       : super(wsUrl: 'ws://fake.localhost', token: 'fake-token');
 
-  @override
-  Future<void> connect() async {}
-
-  @override
-  void sendCommand(String text) {}
-
-  @override
-  Future<void> disconnect() async {}
+  @override Future<void> connect() async {}
+  @override void sendCommand(String text) {}
+  @override void sendNewSession() {}
+  @override Future<void> disconnect() async {}
 }
 
 Widget makeApp(AppStateNotifier state) => ChangeNotifierProvider<AppStateNotifier>.value(
@@ -61,5 +56,28 @@ void main() {
     state.setLastMessage('토큰 만료 수정했어요.');
     await tester.pumpWidget(makeApp(state));
     expect(find.text('토큰 만료 수정했어요.'), findsOneWidget);
+  });
+
+  testWidgets('hint text shows 탭해서 말하기 when idle', (tester) async {
+    final state = AppStateNotifier();
+    state.setAgentOnline(true);
+    await tester.pumpWidget(makeApp(state));
+    expect(find.text('탭해서 말하기'), findsOneWidget);
+  });
+
+  testWidgets('shows new_session_button when agent online', (tester) async {
+    final state = AppStateNotifier();
+    state.setAgentOnline(true);
+    await tester.pumpWidget(makeApp(state));
+    expect(find.byKey(const Key('new_session_button')), findsOneWidget);
+  });
+
+  testWidgets('shows session counter after commandCount increments', (tester) async {
+    final state = AppStateNotifier();
+    state.setAgentOnline(true);
+    state.incrementCommandCount();
+    await tester.pumpWidget(makeApp(state));
+    await tester.pump();
+    expect(find.text('세션 1번째'), findsOneWidget);
   });
 }

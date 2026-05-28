@@ -3,14 +3,12 @@ import '../models/app_state.dart';
 
 class MicButton extends StatelessWidget {
   final VoiceState state;
-  final VoidCallback? onPressStart;
-  final VoidCallback? onPressEnd;
+  final VoidCallback? onTap;
 
   const MicButton({
     super.key,
     required this.state,
-    this.onPressStart,
-    this.onPressEnd,
+    this.onTap,
   });
 
   bool get _enabled => state == VoiceState.idle || state == VoiceState.recording;
@@ -25,11 +23,7 @@ class MicButton extends StatelessWidget {
           key: _enabled
               ? const Key('mic_button_enabled')
               : const Key('mic_button_disabled'),
-          onPanStart: _enabled ? (_) => onPressStart?.call() : null,
-          onPanEnd: _enabled ? (_) => onPressEnd?.call() : null,
-          onTapDown: _enabled ? (_) => onPressStart?.call() : null,
-          onTapUp: _enabled ? (_) => onPressEnd?.call() : null,
-          onTapCancel: _enabled ? onPressEnd : null,
+          onTap: _enabled ? onTap : null,
           child: Container(
             width: 64,
             height: 64,
@@ -75,10 +69,10 @@ class MicButton extends StatelessWidget {
   }
 
   String get _hint => switch (state) {
-        VoiceState.idle => '버튼을 누르고 말하세요',
-        VoiceState.recording => '손 떼면 전송',
+        VoiceState.idle      => '탭해서 말하기',
+        VoiceState.recording => '다시 탭해서 전송',
         VoiceState.processing => '작업 중 — 잠시만요',
-        VoiceState.speaking => '재생 중...',
+        VoiceState.speaking  => '재생 중...',
         VoiceState.agentOffline => '에이전트 연결 필요',
       };
 }
