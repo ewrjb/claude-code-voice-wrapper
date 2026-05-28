@@ -73,8 +73,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(_error!,
-                        style: const TextStyle(color: Colors.redAccent)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2D1515),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFE74C3C).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline,
+                              color: Color(0xFFE74C3C), size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _error!,
+                              style: const TextStyle(
+                                  color: Color(0xFFE74C3C), fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 TextFormField(
                   key: const Key('email_field'),

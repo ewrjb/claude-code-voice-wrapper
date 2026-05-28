@@ -51,8 +51,22 @@ class _MainScreenState extends State<MainScreen> {
     };
     _relay!.onError = (text) {
       if (!mounted) return;
-      appState.setLastMessage('오류: $text');
       appState.setVoiceState(VoiceState.idle);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded,
+                  color: Colors.white, size: 16),
+              const SizedBox(width: 8),
+              Expanded(child: Text(text)),
+            ],
+          ),
+          backgroundColor: const Color(0xFF2D1A0E),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     };
     _relay!.onDisconnected = () {
       if (mounted) appState.setAgentOnline(false);
