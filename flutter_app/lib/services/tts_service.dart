@@ -33,16 +33,16 @@ class TtsService {
           .toList();
       if (voices.isEmpty) return;
 
-      // Premium → Enhanced → (첫 번째 한국어 음성) 순으로 선택
+      // Siri 음성 2 → Premium → Enhanced → (첫 번째 한국어 음성) 순으로 선택
       Map<dynamic, dynamic>? selected;
-      for (final quality in ['Premium', 'Enhanced']) {
+      for (final keyword in ['Siri 음성 2', 'Siri Voice 2', 'Premium', 'Enhanced']) {
         try {
           selected = voices.firstWhere(
-            (v) => (v['name'] as String? ?? '').contains(quality),
+            (v) => (v['name'] as String? ?? '').contains(keyword),
           );
           break;
         } catch (_) {
-          // 해당 품질의 음성 없음, 다음 품질 시도
+          // 해당 음성 없음, 다음 후보 시도
         }
       }
       selected ??= voices.first;
