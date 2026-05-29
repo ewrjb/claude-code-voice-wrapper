@@ -10,10 +10,50 @@ class TtsService {
   Future<void> initialize() async {
     if (_initialized) return;
     await _tts.setLanguage('ko-KR');
+    await _selectBestKoreanVoice();
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);
     _initialized = true;
+  }
+
+  /// 사용 가능한 한국어 음성 중 가장 품질이 높은 것을 선택한다.
+  /// iOS: Premium > Enhanced > Standard 순으로 선호.
+  /// 실패 시 시스템 기본 음성으로 fallback.
+  Future<void> _selectBestKoreanVoice() async {
+    try {
+      final raw = await _tts.getVoices;
+      if (raw == null) return;
+      final voices = (raw as List)
+          .cast<Map<dynamic, dynamic>>()
+          .where((v) {
+            final locale = (v['locale'] as String? ?? '').toLowerCase();
+            return locale.startsWith('ko');
+          })
+          .toList();
+      if (voices.isEmpty) return;
+
+      // Premium → Enhanced → (첫 번째 한국어 음성) 순으로 선택
+      Map<dynamic, dynamic>? selected;
+      for (final quality in ['Premium', 'Enhanced']) {
+        try {
+          selected = voices.firstWhere(
+            (v) => (v['name'] as String? ?? '').contains(quality),
+          );
+          break;
+        } catch (_) {
+          // 해당 품질의 음성 없음, 다음 품질 시도
+        }
+      }
+      selected ??= voices.first;
+
+      await _tts.setVoice({
+        'name': selected['name'] as String,
+        'locale': selected['locale'] as String,
+      });
+    } catch (_) {
+      // 음성 선택 실패 시 시스템 기본 음성 사용
+    }
   }
 
   /// iOS: AVAudioSession을 .playback 카테고리로 재설정한다.
