@@ -52,8 +52,10 @@ async def run_forever(relay_url: str, token: str, runner: ClaudeRunner) -> None:
                 logger.info("릴레이 서버 연결됨")
                 while True:
                     raw = await ws.recv()
+                    logger.info("메세지 수신: %s", raw[:120])
                     response = await handle_message(raw, runner, lock)
                     if response:
+                        logger.info("응답 전송: %s", response[:120])
                         await ws.send(response)
         except Exception as exc:
             logger.warning("연결 끊김: %s — %d초 후 재연결...", exc, RECONNECT_DELAY)

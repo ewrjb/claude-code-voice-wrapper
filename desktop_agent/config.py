@@ -17,4 +17,13 @@ def get_token() -> str:
 
 
 def get_working_dir() -> Optional[str]:
-    return os.getenv("WORKING_DIR") or None
+    path = os.getenv("WORKING_DIR") or None
+    if path and not os.path.isdir(path):
+        import warnings
+        warnings.warn(
+            f"WORKING_DIR='{path}'이 존재하지 않습니다. "
+            "None으로 대체합니다. .env 파일을 확인해주세요.",
+            stacklevel=2,
+        )
+        return None
+    return path

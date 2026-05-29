@@ -36,7 +36,8 @@ def test_args_include_required_flags():
     with patch("subprocess.run", return_value=_mock_result()) as mock_run:
         runner.run("명령어")
     args = mock_run.call_args[0][0]
-    assert "claude" in args
+    # 첫 번째 인자는 claude 바이너리 경로 (전체 경로 또는 "claude")
+    assert any("claude" in a for a in args)
     assert "-p" in args
     assert "--permission-mode" in args
     assert "auto" in args

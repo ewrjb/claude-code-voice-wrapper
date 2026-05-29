@@ -1,4 +1,6 @@
+import os
 import pytest
+from unittest.mock import patch
 from config import get_relay_url, get_token, get_working_dir
 
 
@@ -29,5 +31,14 @@ def test_working_dir_default(monkeypatch):
 
 
 def test_working_dir_custom(monkeypatch):
+    """유효한 경로가 설정되면 그대로 반환한다."""
     monkeypatch.setenv("WORKING_DIR", "/Users/dongju/myproject")
-    assert get_working_dir() == "/Users/dongju/myproject"
+    with patch("os.path.isdir", return_value=True):
+        assert get_working_dir() == "/Users/dongju/myproject"
+
+
+def test_working_dir_invalid_path_returns_none(monkeypatch):
+    """존재하지 않는 경로는 None으로 대체한다."""
+    monkeypatch.setenv("WORKING_DIR", "/does/not/exist")
+    with patch("os.path.isdir", return_value=False):
+        assert get_working_dir() is None

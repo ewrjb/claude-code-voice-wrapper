@@ -1,5 +1,28 @@
+import os
+import shutil
 import subprocess
 from typing import Optional
+
+
+def _find_claude_binary() -> str:
+    """claude 실행파일 경로를 반환한다. ~/.local/bin 등 일반적인 위치도 탐색한다."""
+    # 먼저 현재 PATH에서 찾기
+    found = shutil.which("claude")
+    if found:
+        return found
+    # PATH에 없으면 일반적인 설치 위치 직접 탐색
+    candidates = [
+        os.path.expanduser("~/.local/bin/claude"),
+        "/usr/local/bin/claude",
+        "/opt/homebrew/bin/claude",
+    ]
+    for path in candidates:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return "claude"  # 찾지 못하면 원래대로 (FileNotFoundError로 이어짐)
+
+
+_CLAUDE_BIN = _find_claude_binary()
 
 
 class ClaudeRunner:
@@ -22,16 +45,25 @@ class ClaudeRunner:
 
     def run(self, command: str) -> str:
         prompt = f"{self.VOICE_PROMPT}\n\n{command}"
-        args = ["claude", "-p", "--permission-mode", "auto"]
+        args = [_CLAUDE_BIN, "-p", "--permission-mode", "auto"]
         if self._use_continue:
             args.append("--continue")
         args.append(prompt)
+
+        # subprocess가 쉘과 동일한 PATH를 사용하도록 현재 환경변수를 그대로 전달
+        env = os.environ.copy()
+        # ~/.local/bin이 PATH에 없으면 추가
+        local_bin = os.path.expanduser("~/.local/bin")
+        if local_bin not in env.get("PATH", ""):
+            env["PATH"] = local_bin + os.pathsep + env.get("PATH", "")
+
         try:
             result = subprocess.run(
                 args,
                 capture_output=True,
                 text=True,
                 cwd=self._working_dir,
+                env=env,
                 timeout=120,
             )
         except FileNotFoundError:
